@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <style>
+      body { margin: 0; overflow: hidden; background: #07090e; font-family: 'Segoe UI', Inter, sans-serif; }
+      #hud {
+        position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+        color: #FDE047; background: rgba(15, 23, 42, 0.94); padding: 8px 24px;
+        border-radius: 9999px; border: 1px solid #D97706; font-size: 13px; font-weight: 600;
+        z-index: 1000; box-shadow: 0 4px 20px rgba(217, 119, 6, 0.4); pointer-events: none; letter-spacing: 0.5px;
+      }
+      .ctrl-panel { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 1001; }
+      .sim-btn {
+        background: #1E293B; color: #38BDF8; border: 1px solid #0284C7; padding: 10px 20px;
+        border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.6); transition: all 0.2s ease;
+      }
+      .sim-btn:hover { background: #0284C7; color: #FFFFFF; }
+      .sim-btn-mic { background: #B91C1C; color: #FFFFFF; border: 1px solid #EF4444; }
+      .sim-btn-mic:hover { background: #DC2626; }
+      .sim-btn-mic.recording { background: #059669 !important; border-color: #34D399 !important; animation: pulse 1s infinite alternate; }
+      @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.05); } }
+    </style>
+  </head>
+  <body>
+    <div id="hud">Live Interactive Trial | Drag 360° to Look | Click 'Speak to Judge'</div>
+    <div class="ctrl-panel">
+      <button id="mic-toggle-btn" class="sim-btn sim-btn-mic" onclick="toggleLiveWitnessMic()">Speak to Judge (Live Mic)</button>
+      <button class="sim-btn" onclick="triggerGavelStrike()">Strike Gavel</button>
+    </div>
+    <a-scene embedded style="height: 560px; width: 100%;" vr-mode-ui="enabled: true">
+      <a-sky color="#0B1120"></a-sky>
+      <a-plane position="0 0 0" rotation="-90 0 0" width="32" height="32" color="#1E293B" material="roughness: 0.6; metalness: 0.1;"></a-plane>
+      <a-plane position="0 5 -12" width="28" height="10" color="#334155" material="roughness: 0.9;"></a-plane>
+      <a-plane position="-14 5 0" rotation="0 90 0" width="28" height="10" color="#1E293B"></a-plane>
+      <a-plane position="14 5 0" rotation="0 -90 0" width="28" height="10" color="#1E293B"></a-plane>
+      <a-entity position="0 8.5 -4" animation="property: rotation; to: 0 360 0; loop: true; dur: 1200; easing: linear">
+        <a-cylinder radius="0.08" height="1.6" color="#1E293B"></a-cylinder>
+        <a-box position="0.9 0 0" width="1.6" height="0.02" depth="0.22" color="#0B0F17"></a-box>
+        <a-box position="-0.9 0 0" width="1.6" height="0.02" depth="0.22" color="#0B0F17"></a-box>
+        <a-box position="0 0 0.9" width="0.22" height="0.02" depth="1.6" color="#0B0F17"></a-box>
+        <a-box position="0 0 -0.9" width="0.22" height="0.02" depth="1.6" color="#0B0F17"></a-box>
+      </a-entity>
+      <a-box position="0 0.4 -9.5" width="8" height="0.8" depth="4" color="#29150B"></a-box>
+      <a-box position="0 1.4 -9.0" width="6.2" height="1.4" depth="1.4" color="#451A03" material="roughness: 0.4;"></a-box>
+      <a-box position="0 2.2 -10.3" width="1.3" height="2.4" depth="0.2" color="#7F1D1D"></a-box>
+      <a-box position="0 1.2 -9.9" width="1.1" height="0.3" depth="0.9" color="#7F1D1D"></a-box>
+      <a-entity id="judge-avatar" position="0 1.3 -9.8">
+        <a-cylinder position="0 0.45 0" radius="0.38" height="0.9" color="#090D14"></a-cylinder>
+        <a-box position="0 0.7 0.32" width="0.14" height="0.22" depth="0.05" color="#FFFFFF"></a-box>
+        <a-sphere position="0 1.05 0" radius="0.2" color="#E2B79A"></a-sphere>
+        <a-sphere position="0 1.12 -0.04" radius="0.21" color="#475569"></a-sphere>
+        <a-box position="0 1.05 0.19" width="0.16" height="0.04" depth="0.03" color="#D97706"></a-box>
+      </a-entity>
+      <a-cylinder position="0 4.2 -11.9" rotation="90 0 0" radius="0.75" height="0.05" color="#D97706" material="metalness: 0.8; roughness: 0.2;"></a-cylinder>
+      <a-text value="HON'BLE DISTRICT & SESSIONS COURT" position="0 3.1 -11.8" align="center" color="#FEF08A" width="8"></a-text>
+      <a-text value="LIVE JUDICIAL INTERACTION & DESENSITIZATION (SEC 398 BNSS)" position="0 2.7 -11.8" align="center" color="#94A3B8" width="5.2"></a-text>
+      <a-cylinder position="0.8 2.13 -8.8" radius="0.14" height="0.05" color="#78350F"></a-cylinder>
+      <a-entity position="0.8 2.22 -8.8" rotation="0 35 0">
+        <a-cylinder radius="0.05" height="0.25" rotation="90 0 0" color="#D97706" material="metalness: 0.8;"></a-cylinder>
+        <a-cylinder position="0 0.15 0" radius="0.02" height="0.3" color="#78350F"></a-cylinder>
+      </a-entity>
+      <a-box position="-4 0.6 -5.5" width="3" height="1.2" depth="1.4" color="#542407"></a-box>
+      <a-box position="-4 1.25 -5.5" width="0.8" height="0.2" depth="0.6" color="#B91C1C"></a-box>
+      <a-text value="PUBLIC PROSECUTOR" position="-4 1.55 -5.5" align="center" color="#CBD5E1" width="3.2"></a-text>
+      <a-box position="4 0.6 -5.5" width="3" height="1.2" depth="1.4" color="#542407"></a-box>
+      <a-box position="4 1.25 -5.5" width="0.8" height="0.2" depth="0.6" color="#B91C1C"></a-box>
+      <a-text value="DEFENSE COUNSEL" position="4 1.55 -5.5" align="center" color="#CBD5E1" width="3.2"></a-text>
+      <a-box position="0 0.1 0" width="1.8" height="0.2" depth="1.8" color="#3B1E08"></a-box>
+      <a-box position="-0.85 0.7 -0.85" width="0.12" height="1.2" depth="0.12" color="#78350F"></a-box>
+      <a-box position="0.85 0.7 -0.85" width="0.12" height="1.2" depth="0.12" color="#78350F"></a-box>
+      <a-box position="-0.85 0.7 0.85" width="0.12" height="1.2" depth="0.12" color="#78350F"></a-box>
+      <a-box position="0.85 0.7 0.85" width="0.12" height="1.2" depth="0.12" color="#78350F"></a-box>
+      <a-box position="0 1.25 -0.85" width="1.8" height="0.08" depth="0.14" color="#92400E"></a-box>
+      <a-box position="-0.85 1.25 0" width="0.14" height="0.08" depth="1.8" color="#92400E"></a-box>
+      <a-box position="0.85 1.25 0" width="0.14" height="0.08" depth="1.8" color="#92400E"></a-box>
+      <a-cylinder position="-0.55 0.7 -0.85" radius="0.02" height="1.1" color="#B45309"></a-cylinder>
+      <a-cylinder position="-0.28 0.7 -0.85" radius="0.02" height="1.1" color="#B45309"></a-cylinder>
+      <a-cylinder position="0.0 0.7 -0.85" radius="0.02" height="1.1" color="#B45309"></a-cylinder>
+      <a-cylinder position="0.28 0.7 -0.85" radius="0.02" height="1.1" color="#B45309"></a-cylinder>
+      <a-cylinder position="0.55 0.7 -0.85" radius="0.02" height="1.1" color="#B45309"></a-cylinder>
+      <a-cylinder position="0.3 1.25 -0.8" radius="0.012" height="0.4" color="#0F172A" rotation="-20 0 0"></a-cylinder>
+      <a-sphere id="mic-head" position="0.3 1.45 -0.73" radius="0.04" color="#64748B"></a-sphere>
+      <a-entity position="0 2.2 -2.6">
+        <a-plane width="4.2" height="1.0" color="#0F172A" material="opacity: 0.92; transparent: true;"></a-plane>
+        <a-text id="speaker-role" value="PRESIDING JUDGE — COURT READY" position="0 0.32 0.02" align="center" color="#FDE047" width="3.8"></a-text>
+        <a-text id="speaker-line" value="Click 'Speak to Judge' below and speak into your microphone." position="0 -0.05 0.02" align="center" color="#E2E8F0" width="3.6"></a-text>
+      </a-entity>
+      <a-light type="ambient" color="#64748B" intensity="1.0"></a-light>
+      <a-light id="bench-spot" type="spot" position="0 7.5 -8" target="#judge-avatar" angle="50" color="#FEF3C7" intensity="2.8"></a-light>
+      <a-light type="point" position="0 3 -0.5" color="#E0F2FE" intensity="1.3" distance="5"></a-light>
+      <a-camera position="0 1.6 0" look-controls="enabled: true; reverseMouseDrag: false"></a-camera>
+    </a-scene>
+    <script>
+      let audioCtx = null, recognition = null, isRecording = false;
+      function getAudioContext() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+      }
+      function strikeGavel(delay = 0) {
+        const ctx = getAudioContext(); const now = ctx.currentTime + delay;
+        const masterGain = ctx.createGain();
+        masterGain.gain.setValueAtTime(3.5, now); masterGain.connect(ctx.destination);
+        const oscClick = ctx.createOscillator(), gainClick = ctx.createGain();
+        oscClick.type = 'triangle'; oscClick.frequency.setValueAtTime(360, now);
+        oscClick.frequency.exponentialRampToValueAtTime(45, now + 0.08);
+        gainClick.gain.setValueAtTime(1.8, now); gainClick.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        oscClick.connect(gainClick); gainClick.connect(masterGain);
+        const oscThump = ctx.createOscillator(), gainThump = ctx.createGain();
+        oscThump.type = 'sine'; oscThump.frequency.setValueAtTime(130, now);
+        oscThump.frequency.exponentialRampToValueAtTime(24, now + 0.22);
+        gainThump.gain.setValueAtTime(2.2, now); gainThump.gain.exponentialRampToValueAtTime(0.001, now + 0.30);
+        oscThump.connect(gainThump); gainThump.connect(masterGain);
+        oscClick.start(now); oscThump.start(now); oscClick.stop(now + 0.13); oscThump.stop(now + 0.32);
+      }
+      function triggerGavelStrike() { strikeGavel(0.0); strikeGavel(0.24); }
+      function speakAsJudge(text) {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(text);
+          u.pitch = 0.85; u.rate = 0.92; u.lang = 'en-IN';
+          window.speechSynthesis.speak(u);
+        }
+      }
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SR) {
+        recognition = new SR();
+        recognition.continuous = false; recognition.interimResults = false; recognition.lang = 'en-IN';
+        recognition.onstart = function() {
+          isRecording = true;
+          const btn = document.querySelector("#mic-toggle-btn"), mic = document.querySelector("#mic-head");
+          const role = document.querySelector("#speaker-role"), line = document.querySelector("#speaker-line");
+          btn.classList.add("recording"); btn.innerText = "Listening... Speak now";
+          mic.setAttribute("color", "#EF4444");
+          role.setAttribute("value", "WITNESS SPEAKING..."); role.setAttribute("color", "#F87171");
+          line.setAttribute("value", "Listening to your voice through laptop mic...");
+        };
+        recognition.onresult = function(e) { processWitnessInput(e.results[0][0].transcript); };
+        recognition.onerror = function(e) {
+          resetMicUI();
+          document.querySelector("#speaker-line").setAttribute("value", "Microphone timed out or permission denied. Please click to try again.");
+        };
+        recognition.onend = function() { resetMicUI(); };
+      }
+      function resetMicUI() {
+        isRecording = false;
+        const btn = document.querySelector("#mic-toggle-btn"), mic = document.querySelector("#mic-head");
+        btn.classList.remove("recording"); btn.innerText = "Speak to Judge (Live Mic)";
+        mic.setAttribute("color", "#64748B");
+      }
+      function toggleLiveWitnessMic() {
+        getAudioContext();
+        if (!recognition) { alert("Web Speech API not supported. Please use Chrome or Edge."); return; }
+        if (isRecording) recognition.stop(); else recognition.start();
+      }
+      function processWitnessInput(userInput) {
+        const role = document.querySelector("#speaker-role"), line = document.querySelector("#speaker-line");
+        role.setAttribute("value", "WITNESS TESTIMONY (RECORDED)"); role.setAttribute("color", "#34D399");
+        line.setAttribute("value", '"' + userInput + '"');
+        const lower = userInput.toLowerCase();
+        setTimeout(() => {
+          triggerGavelStrike();
+          let jr = "";
+          if (lower.includes("darr")||lower.includes("fear")||lower.includes("scared")||lower.includes("threat")||lower.includes("warning")||lower.includes("dhamki")||lower.includes("kill")) {
+            jr = "Order! Witness, do not fear. This court is executing Section 398 of the BNSS. No one can touch you here. Police escort is hereby ordered.";
+          } else if (lower.includes("name")||lower.includes("witness")||lower.includes("case")||lower.includes("present")||lower.includes("yes")) {
+            jr = "Your presence is duly recorded on the judicial record. Take a deep breath and tell the court everything you witnessed.";
+          } else if (lower.includes("help")||lower.includes("protection")||lower.includes("police")||lower.includes("safe")) {
+            jr = "The Witness Protection Scheme 2018 is actively engaged for your identity and safety. You are safe in this katghara.";
+          } else {
+            jr = "The court acknowledges your statement. Speak slowly, clearly, and without anxiety. Justice will prevail.";
+          }
+          role.setAttribute("value", "HON'BLE PRESIDING JUDGE"); role.setAttribute("color", "#FDE047");
+          line.setAttribute("value", jr); speakAsJudge(jr);
+        }, 900);
+      }
+    </script>
+  </body>
+</html>
